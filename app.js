@@ -1546,7 +1546,7 @@ function toggleChronology() {
 
 function renderVerifiedTable() {
   const tbody = document.getElementById("verified-entities-tbody");
-  const verified = TRIAGE_LEADS.filter(l => l.status === "verified");
+  const verified = REAL_TRIAGE_LEADS.filter(l => l.status === "verified");
 
   document.getElementById("verified-table-badge").textContent = `${verified.length} Items Signed`;
 
