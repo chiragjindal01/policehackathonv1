@@ -16,6 +16,7 @@ import legal_dossier
 import tempfile
 from ocr_worker import process_evidence_image
 from cdr_analyser import parse_cdr_csv, fetch_dead_drop_events, find_colocation_matches
+from kingpin_priority import compute_strike_priority
 
 PORT = 8000
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -70,6 +71,14 @@ class ForensicHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             graph = storage.get_case_graph_data(case_id)
             self._set_json_headers(200)
             self.wfile.write(json.dumps(graph).encode('utf-8'))
+            return
+                    # API: Kingpin Strike Priority (Fork F)
+        if path == '/api/strike_priority':
+            case_id = params.get('case_id', ['FIR_104_2026'])[0]
+            graph_data = storage.get_case_graph_data(case_id)
+            result = compute_strike_priority(graph_data)
+            self._set_json_headers(200)
+            self.wfile.write(json.dumps(result).encode('utf-8'))
             return
 
         # API: Cross-Source Correlations
