@@ -481,7 +481,7 @@
             <button class="view-tab active" id="tab-btn-dossier" onclick="switchRightPanelTab('dossier')">Target Summary</button>
             <button class="view-tab" id="tab-btn-graph" onclick="switchRightPanelTab('graph')">Network Graph</button>
             <button class="view-tab" id="tab-btn-trends" onclick="switchRightPanelTab('trends')">Corpus Trends</button>
-            <button class="view-tab" id="tab-btn-strike" onclick="switchRightPanelTab('strike')">🎯 Strike Priority</button>
+            <button class="view-tab" onclick="document.getElementById('tab-content-strike').style.setProperty('display','block','important'); document.getElementById('tab-content-dossier').style.setProperty('display','none','important'); document.getElementById('tab-content-graph').style.setProperty('display','none','important'); document.getElementById('tab-content-trends').style.setProperty('display','none','important'); var ind=document.getElementById('tab-content-induction'); if(ind) ind.style.setProperty('display','none','important');">🎯 Strike Priority</button>
             <button class="view-tab" id="tab-btn-induction" onclick="switchRightPanelTab('induction')">⚡ Slang Induction</button>
           </div>
         </div>
@@ -772,7 +772,7 @@
               Click "Scan & Induce" to analyze transaction messages with local SLM.
             </div>
           </div>
-          <div class="tab-content-strike-wrapper" id="tab-content-strike" style="display: none;">
+          <div id="tab-content-strike" style="display:none;">
   <div class="glass-box-notice" style="margin-bottom: 12px; border-left: 3px solid #ef4444;">
     <span>🎯 <strong>Network Disruption Advisor:</strong> Betweenness centrality ranks which entity's removal would break the most connections in this case's network.</span>
   </div>
