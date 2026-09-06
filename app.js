@@ -1193,10 +1193,13 @@ function switchRightPanelTab(tabName) {
   document.getElementById("tab-btn-trends").classList.toggle("active", tabName === "trends");
   const inductionBtn = document.getElementById("tab-btn-induction");
   if (inductionBtn) inductionBtn.classList.toggle("active", tabName === "induction");
-  
+      const strikeBtn = document.getElementById("tab-btn-strike");
+    if (strikeBtn) strikeBtn.classList.toggle("active", tabName === "strike");
   document.getElementById("tab-content-dossier").classList.toggle("active", tabName === "dossier");
   document.getElementById("tab-content-graph").classList.toggle("active", tabName === "graph");
   document.getElementById("tab-content-trends").classList.toggle("active", tabName === "trends");
+      const strikeContent = document.getElementById("tab-content-strike");
+    if (strikeContent) strikeContent.style.display = tabName === "strike" ? "block" : "none";
   
   const inductionContent = document.getElementById("tab-content-induction");
   if (inductionContent) {
