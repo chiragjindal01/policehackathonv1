@@ -323,7 +323,30 @@ async function uploadCdrFile(file) {
     alert('CDR upload failed: ' + result.message);
   }
 }
+async function runStrikePriority() {
+  const caseId = window.currentCaseId || 'FIR_104_2026';
+  const container = document.getElementById('strike-priority-results');
+  container.innerHTML = '<div style="text-align:center;padding:20px;color:#64748b;">Computing network centrality...</div>';
 
+  const resp = await fetch(`/api/strike_priority?case_id=${encodeURIComponent(caseId)}`);
+  const data = await resp.json();
+
+  if (data.status !== 'success') {
+    container.innerHTML = `<div style="color:#ef4444;">${data.message || 'No graph data yet - ingest evidence first.'}</div>`;
+    return;
+  }
+
+  container.innerHTML = data.recommendations.map(rec => `
+    <div style="background:rgba(30,41,59,0.6);border-left:3px solid #ef4444;border-radius:6px;padding:12px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="font-bold" style="color:#ef4444;">#${rec.priority_rank} ${rec.label}</span>
+        <span class="badge badge-sm badge-blue">${rec.entity_type}</span>
+      </div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:6px;">${rec.explanation}</div>
+      <div style="font-size:11px;color:#f59e0b;margin-top:6px;">⚠ ${rec.caveats.join(' | ')}</div>
+    </div>
+  `).join('');
+}
 async function autofillEvidenceFiles() {
   const caseId = CASE_METADATA.fir ? CASE_METADATA.fir.replace(/[^a-zA-Z0-9_-]/g, "_") : "FIR_104_2026";
   showToast("⚙️ Pre-fetching authentic case evidence files from storage...", "info");
