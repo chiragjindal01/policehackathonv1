@@ -1201,9 +1201,9 @@ function switchRightPanelTab(tabName) {
       const strikeEl = document.getElementById("tab-content-strike");
 if (strikeEl) {
   if (tabName === "strike") {
-    strikeEl.style.setProperty("display", "block", "important");
+    strikeEl.style.cssText = "display: block !important; visibility: visible !important; opacity: 1 !important; height: auto !important; position: relative !important;";
   } else {
-    strikeEl.style.setProperty("display", "none", "important");
+    strikeEl.style.cssText = "display: none !important;";
   }
 }
   
