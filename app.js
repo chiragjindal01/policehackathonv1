@@ -1198,7 +1198,14 @@ function switchRightPanelTab(tabName) {
   document.getElementById("tab-content-dossier").classList.toggle("active", tabName === "dossier");
   document.getElementById("tab-content-graph").classList.toggle("active", tabName === "graph");
   document.getElementById("tab-content-trends").classList.toggle("active", tabName === "trends");
-      document.getElementById("tab-content-strike").style.display = tabName === "strike" ? "block" : "none";
+      const strikeEl = document.getElementById("tab-content-strike");
+if (strikeEl) {
+  if (tabName === "strike") {
+    strikeEl.style.setProperty("display", "block", "important");
+  } else {
+    strikeEl.style.setProperty("display", "none", "important");
+  }
+}
   
   const inductionContent = document.getElementById("tab-content-induction");
   if (inductionContent) {
