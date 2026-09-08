@@ -358,7 +358,37 @@ function stopVoiceRecording() {
   document.getElementById('voice-record-status').style.display = 'none';
   document.getElementById('record-voice-btn').style.display = 'inline-flex';
 }
-
+async function uploadVoiceNoteFile(file) {
+  if (!file) return;
+  const caseId = CASE_METADATA.fir ? CASE_METADATA.fir.replace(/[^a-zA-Z0-9_-]/g, "_") : "FIR_104_2026";
+  const senderId = (CASE_METADATA.io || 'FIELD_OFFICER').replace(/\s+/g, '_');
+  const arrayBuffer = await file.arrayBuffer();
+  showToast('🎙️ Uploading and transcribing voice note file...', 'alert');
+  try {
+    const resp = await fetch(
+      `http://localhost:8000/api/upload_voice?case_id=${encodeURIComponent(caseId)}&filename=${encodeURIComponent(file.name)}&sender_id=${encodeURIComponent(senderId)}`,
+      { method: 'POST', body: arrayBuffer }
+    );
+    const result = await resp.json();
+    logAuditEvent("VOICE_NOTE_FILE_INGESTED", `Voice note file ${file.name} ingested (${result.duration_seconds}s, transcribed: ${result.transcribed_locally}) into ${result.file_id}`);
+    await loadCaseFiles();
+    await loadTriageLeads();
+    renderFileTabs();
+    if (result.file_id) await selectFile(result.file_id);
+    updateCounts();
+    showToast(
+      result.transcribed_locally
+        ? '✅ Voice note file transcribed and ingested into evidence.'
+        : '⚠️ Voice note file saved — no local STT model running, flagged for manual transcription.',
+      'success'
+    );
+  } catch (err) {
+    showToast('❌ Voice note file upload failed: ' + err.message, 'alert');
+  }
+  // Reset input so re-selecting same file triggers change
+  const inputEl = document.getElementById('voice-file-input');
+  if (inputEl) inputEl.value = '';
+}
 async function uploadVoiceNoteRecording() {
   const blob = new Blob(voiceAudioChunks, { type: 'audio/webm' });
   const filename = `voice_note_${Date.now()}.webm`;
