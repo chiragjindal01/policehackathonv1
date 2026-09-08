@@ -15,6 +15,7 @@ import storage
 import legal_dossier
 import tempfile
 from ocr_worker import process_evidence_image
+from voice_worker import process_voice_note
 from cdr_analyser import parse_cdr_csv, fetch_dead_drop_events, find_colocation_matches
 from kingpin_priority import compute_strike_priority
 
@@ -579,7 +580,28 @@ Evasion Code Word:"""
                 self._set_json_headers(500)
                 self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
                 return
+        # API: Voice Note Ingestion (record → transcribe → auto-triage)
+        if path == '/api/upload_voice':
+            try:
+                params = urllib.parse.parse_qs(parsed.query)
+                case_id = params.get('case_id', ['FIR_104_2026'])[0]
+                filename = params.get('filename', ['voice_note.webm'])[0]
+                sender_id = params.get('sender_id', ['FIELD_OFFICER'])[0]
 
+                content_length = int(self.headers.get('Content-Length', 0))
+                audio_bytes = self.rfile.read(content_length)
+
+                result = process_voice_note(audio_bytes, filename, case_id, sender_id)
+
+                self._set_json_headers(200)
+                self.wfile.write(json.dumps(result, default=str).encode('utf-8'))
+                return
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                self._set_json_headers(500)
+                self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode('utf-8'))
+                return
         # API: CDR / Tower Correlation Upload (Fork C)
         if path == '/api/upload_cdr':
             try:
