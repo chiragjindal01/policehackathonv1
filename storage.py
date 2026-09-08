@@ -79,7 +79,14 @@ def init_db(db_path: str = DB_PATH):
         uploaded_at TEXT
     );
     """)
-
+    cur.execute("PRAGMA table_info(evidence_files)")
+    existing_cols = {row[1] for row in cur.fetchall()}
+    if "audio_path" not in existing_cols:
+        cur.execute("ALTER TABLE evidence_files ADD COLUMN audio_path TEXT")
+    if "audio_hash" not in existing_cols:
+        cur.execute("ALTER TABLE evidence_files ADD COLUMN audio_hash TEXT")
+    if "audio_duration" not in existing_cols:
+        cur.execute("ALTER TABLE evidence_files ADD COLUMN audio_duration REAL")
     cur.execute("""
     CREATE TABLE IF NOT EXISTS evidence_records (
         record_id TEXT PRIMARY KEY,
@@ -154,7 +161,15 @@ def log_audit(case_id: str, action: str, details: str, performed_by: str = "IO V
     """, (case_id, action, details, performed_by, ts, entry_hash))
     con.commit()
     con.close()
-
+def attach_audio_to_file(file_id: str, audio_path: str, audio_hash: str, duration: float, db_path: str = DB_PATH):
+    con = get_db(db_path)
+    cur = con.cursor()
+    cur.execute("""
+    UPDATE evidence_files SET audio_path = ?, audio_hash = ?, audio_duration = ?
+    WHERE file_id = ?
+    """, (audio_path, audio_hash, duration, file_id))
+    con.commit()
+    con.close()
 def extract_entities_from_text(text: str) -> Dict[str, List[str]]:
     """Deterministic extractor for Phone, UPI, TRON, BTC, and pricing indicators."""
     results = {
