@@ -397,6 +397,10 @@
             <button id="record-voice-btn" class="btn btn-sm btn-gov-secondary" onclick="startVoiceRecording()" style="padding: 3px 8px; font-size: 11px;">
   <span>🎙️ Record Voice Note</span>
 </button>
+            <input type="file" id="voice-file-input" accept="audio/*" style="display: none;" onchange="uploadVoiceNoteFile(this.files[0])">
+<button class="btn btn-sm btn-gov-secondary" onclick="document.getElementById('voice-file-input').click()" style="padding: 3px 8px; font-size: 11px;">
+  <span>📁 Upload Voice File</span>
+</button>
 <span id="voice-record-status" style="display:none; align-items:center; gap:6px; font-size:11px; color:#ef4444;">
   ⏺ Recording <span id="voice-record-timer" class="mono">0:00</span>
   <button class="btn btn-sm btn-gov-secondary" onclick="stopVoiceRecording()">■ Stop</button>
