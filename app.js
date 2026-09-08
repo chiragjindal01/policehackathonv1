@@ -323,6 +323,71 @@ async function uploadCdrFile(file) {
     alert('CDR upload failed: ' + result.message);
   }
 }
+let mediaRecorder = null;
+let voiceAudioChunks = [];
+let voiceRecordStart = null;
+let voiceRecordTimerInterval = null;
+
+async function startVoiceRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    voiceAudioChunks = [];
+    mediaRecorder.ondataavailable = (e) => voiceAudioChunks.push(e.data);
+    mediaRecorder.onstop = uploadVoiceNoteRecording;
+    mediaRecorder.start();
+    voiceRecordStart = Date.now();
+    document.getElementById('record-voice-btn').style.display = 'none';
+    document.getElementById('voice-record-status').style.display = 'inline-flex';
+    voiceRecordTimerInterval = setInterval(() => {
+      const secs = Math.floor((Date.now() - voiceRecordStart) / 1000);
+      document.getElementById('voice-record-timer').textContent =
+        `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+    }, 500);
+  } catch (err) {
+    showToast('🎙️ Microphone access denied: ' + err.message, 'alert');
+  }
+}
+
+function stopVoiceRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+  }
+  clearInterval(voiceRecordTimerInterval);
+  document.getElementById('voice-record-status').style.display = 'none';
+  document.getElementById('record-voice-btn').style.display = 'inline-flex';
+}
+
+async function uploadVoiceNoteRecording() {
+  const blob = new Blob(voiceAudioChunks, { type: 'audio/webm' });
+  const filename = `voice_note_${Date.now()}.webm`;
+  const caseId = CASE_METADATA.fir ? CASE_METADATA.fir.replace(/[^a-zA-Z0-9_-]/g, "_") : "FIR_104_2026";
+  const senderId = (CASE_METADATA.io || 'FIELD_OFFICER').replace(/\s+/g, '_');
+  const arrayBuffer = await blob.arrayBuffer();
+  showToast('🎙️ Uploading and transcribing voice note...', 'alert');
+  try {
+    const resp = await fetch(
+      `http://localhost:8000/api/upload_voice?case_id=${encodeURIComponent(caseId)}&filename=${encodeURIComponent(filename)}&sender_id=${encodeURIComponent(senderId)}`,
+      { method: 'POST', body: arrayBuffer }
+    );
+    const result = await resp.json();
+    logAuditEvent("VOICE_NOTE_INGESTED", `Voice note ingested (${result.duration_seconds}s, transcribed: ${result.transcribed_locally}) into ${result.file_id}`);
+    await loadCaseFiles();
+    await loadTriageLeads();
+    renderFileTabs();
+    if (result.file_id) await selectFile(result.file_id);
+    updateCounts();
+    showToast(
+      result.transcribed_locally
+        ? '✅ Voice note transcribed and ingested into evidence.'
+        : '⚠️ Voice note saved — no local STT model running, flagged for manual transcription.',
+      'success'
+    );
+  } catch (err) {
+    showToast('❌ Voice note upload failed: ' + err.message, 'alert');
+  }
+}
 async function runStrikePriority() {
   const caseId = window.currentCaseId || 'FIR_104_2026';
   const container = document.getElementById('strike-priority-results');
