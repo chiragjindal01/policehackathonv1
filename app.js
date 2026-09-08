@@ -737,6 +737,24 @@ function renderFileMetadata() {
   document.getElementById("meta-sha256").textContent = file.sha256_hash;
   document.getElementById("meta-source").textContent = `Case Evidence Ingestion (${file.record_count} records)`;
   document.getElementById("profile-indicator").textContent = `Profile: ${file.file_type}`;
+  
+  const metaCard = document.getElementById("file-meta-card");
+  let audioRow = document.getElementById("meta-audio-row");
+  if (file.audio_path) {
+    if (!audioRow) {
+      audioRow = document.createElement("div");
+      audioRow.id = "meta-audio-row";
+      audioRow.className = "meta-row";
+      metaCard.appendChild(audioRow);
+    }
+    audioRow.innerHTML = `
+      <span class="meta-key">VOICE NOTE:</span>
+      <audio controls src="/${file.audio_path.replace(/\\/g, '/')}" style="height: 28px; max-width: 220px;"></audio>
+    `;
+    audioRow.style.display = "flex";
+  } else if (audioRow) {
+    audioRow.style.display = "none";
+  }
 }
 
 async function renderRawLines(filterQuery = "") {
